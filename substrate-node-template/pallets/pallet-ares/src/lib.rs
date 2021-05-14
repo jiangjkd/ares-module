@@ -21,7 +21,7 @@ mod mock;
 mod tests;
 
 /// Configure the pallet by specifying the parameters and types on which it depends.
-pub trait Trait: frame_system::Trait {
+pub trait Trait: frame_system::Trait + pallet_collective::Trait {
     /// Because this pallet emits events, it depends on the runtime's definition of an event.
     type Event: From<Event<Self>> + Into<<Self as frame_system::Trait>::Event>;
 
@@ -131,6 +131,7 @@ decl_error! {
 		WrongAggregator,
 		// An aggregator is already registered.
 		AggregatorAlreadyRegistered,
+		CannotRegistered,
 	}
 }
 
@@ -138,7 +139,7 @@ decl_error! {
 // These functions materialize as "extrinsics", which are often compared to transactions.
 // Dispatchable functions must be annotated with a weight and must return a DispatchResult.
 decl_module! {
-	pub struct Module<T: Trait> for enum Call where origin: T::Origin {
+	pub struct Module<T: Trait> for enum Call where origin: <T as frame_system::Trait>::Origin {
 		// Errors must be initialized if they are used by the pallet.
 		type Error = Error<T>;
 
@@ -152,6 +153,7 @@ decl_module! {
 			let who : <T as frame_system::Trait>::AccountId = ensure_signed(origin)?;
 
 			ensure!(!<Aggregators<T>>::contains_key(who.clone()), Error::<T>::AggregatorAlreadyRegistered);
+			ensure!(!pallet_collective::Module::<T>::is_member(&who), Error::<T>::CannotRegistered);
 
 			let now = frame_system::Module::<T>::block_number();
 

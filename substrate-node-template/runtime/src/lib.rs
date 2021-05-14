@@ -275,6 +275,23 @@ impl pallet_ares::Trait for Runtime {
 	type AggregateInterval = AggregateInterval;
 }
 
+parameter_types! {
+	pub const CouncilMotionDuration: BlockNumber = 5 * DAYS;
+	pub const CouncilMaxProposals: u32 = 100;
+	pub const CouncilMaxMembers: u32 = 100;
+}
+impl pallet_collective::Trait for Runtime {
+	type Origin = Origin;
+	type Proposal = Call;
+	type Event = Event;
+	type MotionDuration = CouncilMotionDuration;
+	type MaxProposals = CouncilMaxProposals;
+	type MaxMembers = CouncilMaxMembers;
+	type DefaultVote = pallet_collective::PrimeDefaultVote;
+	type WeightInfo = ();
+	
+}
+
 /// Payload data to be signed when making signed transaction from off-chain workers,
 ///   inside `create_transaction` function.
 pub type SignedPayload = generic::SignedPayload<Call, SignedExtra>;
@@ -375,6 +392,7 @@ construct_runtime!(
 		Aura: pallet_aura::{Module, Config<T>, Inherent},
 		Grandpa: pallet_grandpa::{Module, Call, Storage, Config, Event},
 		Balances: pallet_balances::{Module, Call, Storage, Config<T>, Event<T>},
+		Collective: pallet_collective::{Module, Call, Storage, Origin<T>, Event<T>, Config<T>},
 		TransactionPayment: pallet_transaction_payment::{Module, Storage},
 		Sudo: pallet_sudo::{Module, Call, Config<T>, Storage, Event<T>},
 		// Include the custom logic from the template pallet in the runtime.
